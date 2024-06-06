@@ -9,19 +9,8 @@ interface Usuario {
   user: string;
   password: string;
   fkRol: number;
+  rolNombre: string;
 }
-
-const style = {
-  position: 'absolute' as 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 400,
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
-  boxShadow: 24,
-  p: 4,
-};
 
 const Tabla: React.FC = () => {
   const [rows, setRows] = useState<Usuario[]>([]);
@@ -41,7 +30,8 @@ const Tabla: React.FC = () => {
         nombre: item.nombre,
         user: item.user,
         password: item.password,
-        fkRol: item.roles.nombre
+        fkRol: item.fkRol,
+        rolNombre: item.rolNombre || 'Sin Rol',
       })).filter((item: any) => item.id);
       setRows(usuarios);
     } catch (error) {
@@ -52,46 +42,36 @@ const Tabla: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await api.delete(`/Usuarios/${id}`);
-      fetchData();
+      fetchData(); // Refrescar los datos después de eliminar
     } catch (error) {
       console.error('Error deleting data', error);
     }
   };
 
-  const handleOpen = () => setOpen(true);
+  const handleUpdate = (user: Usuario) => {
+    setEditingUser(user);
+    setOpen(true);
+  };
+
   const handleClose = () => {
-    setEditingUser(null);
     setOpen(false);
+    setEditingUser(null);
   };
 
   const handleSubmit = async () => {
-    try {
-      if (editingUser) {
+    if (editingUser) {
+      try {
         if (editingUser.id) {
           await api.put(`/Usuarios/${editingUser.id}`, editingUser);
         } else {
           await api.post('/Usuarios', editingUser);
         }
-        fetchData();
         handleClose();
+        fetchData();
+      } catch (error) {
+        console.error('Error saving data', error);
       }
-    } catch (error) {
-      console.error('Error saving data', error);
     }
-  };
-
-  const handleUpdate = (user: Usuario) => {
-    setEditingUser(user);
-    handleOpen();
-  };
-
-  const handleAdd = () => {
-    setEditingUser({ id: 0, nombre: '', user: '', password: '', fkRol: 0 });
-    handleOpen();
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEditingUser({ ...editingUser, [e.target.name]: e.target.value } as Usuario);
   };
 
   const columns: GridColDef[] = [
@@ -99,7 +79,7 @@ const Tabla: React.FC = () => {
     { field: 'nombre', headerName: 'Nombre', width: 100 },
     { field: 'user', headerName: 'Usuario', width: 100 },
     { field: 'password', headerName: 'Contraseña', width: 100 },
-    { field: 'fkRol', headerName: 'Rol', width: 100 },
+    { field: 'rolNombre', headerName: 'Rol', width: 100 },
     {
       field: 'actions',
       headerName: 'Acciones',
@@ -128,71 +108,79 @@ const Tabla: React.FC = () => {
     }
   ];
 
+  const style = {
+    position: 'absolute' as 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+  };
+
   return (
-    <div>
+    <div style={{ height: 600, width: '100%' }}>
       <Button
         variant="contained"
         color="primary"
-        style={{ marginBottom: 16 }}
-        onClick={handleAdd}
+        onClick={() => {
+          setEditingUser({ id: 0, nombre: '', user: '', password: '', fkRol: 0, rolNombre: '' });
+          setOpen(true);
+        }}
       >
         Agregar Usuario
       </Button>
-      <div style={{ height: 400, width: '100%' }}>
-        <DataGrid 
-          rows={rows} 
-          columns={columns} 
-          getRowId={(row) => row.id} // Asegurarse de que el identificador es único
-          pagination
-          pageSizeOptions={[5, 10, 20]}
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize: 5, page: 0 }
-            }
-          }}
-        />
-      </div>
+      <DataGrid 
+        rows={rows} 
+        columns={columns} 
+        getRowId={(row) => row.id} // Asegurarse de que el identificador es único
+        pagination
+        pageSizeOptions={[5, 10, 20]}
+        initialState={{
+          pagination: {
+            paginationModel: { pageSize: 5, page: 0 }
+          }
+        }}
+      />
       <Modal
         open={open}
         onClose={handleClose}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <h2 id="modal-title">{editingUser?.id ? 'Actualizar Usuario' : 'Agregar Usuario'}</h2>
+          <h2 id="modal-modal-title">{editingUser?.id ? 'Actualizar Usuario' : 'Agregar Usuario'}</h2>
           <TextField
-            margin="normal"
-            fullWidth
             label="Nombre"
-            name="nombre"
+            fullWidth
+            margin="normal"
             value={editingUser?.nombre || ''}
-            onChange={handleChange}
+            onChange={(e) => setEditingUser({...editingUser!, nombre: e.target.value})}
           />
           <TextField
-            margin="normal"
-            fullWidth
             label="Usuario"
-            name="user"
+            fullWidth
+            margin="normal"
             value={editingUser?.user || ''}
-            onChange={handleChange}
+            onChange={(e) => setEditingUser({...editingUser!, user: e.target.value})}
           />
           <TextField
-            margin="normal"
-            fullWidth
             label="Contraseña"
-            name="password"
+            fullWidth
+            margin="normal"
             value={editingUser?.password || ''}
-            onChange={handleChange}
+            onChange={(e) => setEditingUser({...editingUser!, password: e.target.value})}
           />
           <TextField
-            margin="normal"
-            fullWidth
             label="Rol"
-            name="fkRol"
+            fullWidth
+            margin="normal"
             value={editingUser?.fkRol || ''}
-            onChange={handleChange}
+            onChange={(e) => setEditingUser({...editingUser!, fkRol: parseInt(e.target.value)})} // Convertimos a número
           />
-          <Button onClick={handleSubmit} variant="contained" color="primary">
+          <Button variant="contained" color="primary" onClick={handleSubmit}>
             {editingUser?.id ? 'Actualizar' : 'Agregar'}
           </Button>
         </Box>
