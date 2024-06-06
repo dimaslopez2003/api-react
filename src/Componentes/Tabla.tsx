@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { Button, Modal, Box, TextField } from '@mui/material';
+import { Button, Modal, Box, TextField, IconButton, InputAdornment } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import api from '../WebApi/axiosConfig';
 
 interface Usuario {
@@ -16,6 +17,7 @@ const Tabla: React.FC = () => {
   const [rows, setRows] = useState<Usuario[]>([]);
   const [open, setOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<Usuario | null>(null);
+  const [showPassword, setShowPassword] = useState<{ [key: number]: boolean }>({});
 
   useEffect(() => {
     fetchData();
@@ -74,16 +76,45 @@ const Tabla: React.FC = () => {
     }
   };
 
+  const handleTogglePasswordVisibility = (id: number) => {
+    setShowPassword(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 100 },
-    { field: 'nombre', headerName: 'Nombre', width: 100 },
-    { field: 'user', headerName: 'Usuario', width: 100 },
-    { field: 'password', headerName: 'Contraseña', width: 100 },
-    { field: 'rolNombre', headerName: 'Rol', width: 100 },
+    { field: 'id', headerName: 'ID', width: 60 },
+    { field: 'nombre', headerName: 'Nombre', width: 150 },
+    { field: 'user', headerName: 'Usuario', width: 150 },
+    {
+      field: 'password',
+      headerName: 'Contraseña',
+      width: 200,
+      renderCell: (params) => (
+        <TextField
+          type={showPassword[params.row.id] ? 'text' : 'password'}
+          value={params.value}
+          InputProps={{
+            style: { fontSize: '12px' },
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="toggle password visibility"
+                  onClick={() => handleTogglePasswordVisibility(params.row.id)}
+                >
+                  {showPassword[params.row.id] ? <Visibility /> : <VisibilityOff />}
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
+          disabled
+          fullWidth
+        />
+      )
+    },
+    { field: 'rolNombre', headerName: 'Rol', width: 150 },
     {
       field: 'actions',
       headerName: 'Acciones',
-      width: 200,
+      width: 180,
       renderCell: (params) => (
         <div>
           <Button
@@ -121,7 +152,7 @@ const Tabla: React.FC = () => {
   };
 
   return (
-    <div style={{ height: 600, width: '100%' }}>
+    <div style={{ height: 'auto', width: '100%' }}>
       <Button
         variant="contained"
         color="primary"
@@ -129,21 +160,25 @@ const Tabla: React.FC = () => {
           setEditingUser({ id: 0, nombre: '', user: '', password: '', fkRol: 0, rolNombre: '' });
           setOpen(true);
         }}
+        style={{ marginBottom: 16 }}
       >
         Agregar Usuario
       </Button>
-      <DataGrid 
-        rows={rows} 
-        columns={columns} 
-        getRowId={(row) => row.id}
-        pagination
-        pageSizeOptions={[5, 10, 20]}
-        initialState={{
-          pagination: {
-            paginationModel: { pageSize: 5, page: 0 }
-          }
-        }}
-      />
+      <div style={{ height: 500, width: '100%' }}>
+        <DataGrid 
+          rows={rows} 
+          columns={columns} 
+          getRowId={(row) => row.id}
+          pagination
+          pageSizeOptions={[5, 10, 20]}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 5, page: 0 }
+            }
+          }}
+          autoHeight
+        />
+      </div>
       <Modal
         open={open}
         onClose={handleClose}
@@ -157,28 +192,41 @@ const Tabla: React.FC = () => {
             fullWidth
             margin="normal"
             value={editingUser?.nombre || ''}
-            onChange={(e) => setEditingUser({...editingUser!, nombre: e.target.value})}
+            onChange={(e) => setEditingUser({ ...editingUser!, nombre: e.target.value })}
           />
           <TextField
             label="Usuario"
             fullWidth
             margin="normal"
             value={editingUser?.user || ''}
-            onChange={(e) => setEditingUser({...editingUser!, user: e.target.value})}
+            onChange={(e) => setEditingUser({ ...editingUser!, user: e.target.value })}
           />
           <TextField
             label="Contraseña"
             fullWidth
             margin="normal"
+            type={showPassword[editingUser?.id || 0] ? 'text' : 'password'}
             value={editingUser?.password || ''}
-            onChange={(e) => setEditingUser({...editingUser!, password: e.target.value})}
+            onChange={(e) => setEditingUser({ ...editingUser!, password: e.target.value })}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => handleTogglePasswordVisibility(editingUser?.id || 0)}
+                  >
+                    {showPassword[editingUser?.id || 0] ? <Visibility /> : <VisibilityOff />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
           />
           <TextField
             label="Rol"
             fullWidth
             margin="normal"
             value={editingUser?.fkRol || ''}
-            onChange={(e) => setEditingUser({...editingUser!, fkRol: parseInt(e.target.value)})} // Convertimos a número
+            onChange={(e) => setEditingUser({ ...editingUser!, fkRol: parseInt(e.target.value) })}
           />
           <Button variant="contained" color="primary" onClick={handleSubmit}>
             {editingUser?.id ? 'Actualizar' : 'Agregar'}
