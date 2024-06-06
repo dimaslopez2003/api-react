@@ -76,18 +76,18 @@ const Tabla: React.FC = () => {
     }
   };
 
-  const handleTogglePasswordVisibility = (id: number) => {
-    setShowPassword(prev => ({ ...prev, [id]: !prev[id] }));
+  const handleTogglePasswordVisibility = (id: number) => { // Función para mostrar/ocultar la contraseña
+    setShowPassword(prev => ({ ...prev, [id]: !prev[id] }));// Cambiamos el estado de la contraseña
   };
 
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 60 },
-    { field: 'nombre', headerName: 'Nombre', width: 150 },
-    { field: 'user', headerName: 'Usuario', width: 150 },
+    { field: 'id', headerName: 'ID', flex: 0.5 },
+    { field: 'nombre', headerName: 'Nombre', flex: 1 },
+    { field: 'user', headerName: 'Usuario', flex: 1 },
     {
       field: 'password',
       headerName: 'Contraseña',
-      width: 200,
+      flex: 1.5,
       renderCell: (params) => (
         <TextField
           type={showPassword[params.row.id] ? 'text' : 'password'}
@@ -95,7 +95,7 @@ const Tabla: React.FC = () => {
           InputProps={{
             style: { fontSize: '12px' },
             endAdornment: (
-              <InputAdornment position="end">
+              <InputAdornment position="end"> {/* icon button del ojito de la contraseña */}
                 <IconButton
                   aria-label="toggle password visibility"
                   onClick={() => handleTogglePasswordVisibility(params.row.id)}
@@ -110,11 +110,11 @@ const Tabla: React.FC = () => {
         />
       )
     },
-    { field: 'rolNombre', headerName: 'Rol', width: 150 },
+    { field: 'rolNombre', headerName: 'Rol', flex: 1 },
     {
       field: 'actions',
       headerName: 'Acciones',
-      width: 180,
+      flex: 1.5,
       renderCell: (params) => (
         <div>
           <Button
