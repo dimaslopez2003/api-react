@@ -42,7 +42,7 @@ const Tabla: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await api.delete(`/Usuarios/${id}`);
-      fetchData(); // Refrescar los datos después de eliminar
+      fetchData(); // Actualizamos la tabla
     } catch (error) {
       console.error('Error deleting data', error);
     }
@@ -135,7 +135,7 @@ const Tabla: React.FC = () => {
       <DataGrid 
         rows={rows} 
         columns={columns} 
-        getRowId={(row) => row.id} // Asegurarse de que el identificador es único
+        getRowId={(row) => row.id}
         pagination
         pageSizeOptions={[5, 10, 20]}
         initialState={{
